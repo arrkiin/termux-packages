@@ -186,7 +186,7 @@ termux_step_setup_variables() {
 	: "${TERMUX_DEBUG:=""}"
 	: "${TERMUX_API_LEVEL:="21"}"
 	: "${TERMUX_ANDROID_BUILD_TOOLS_VERSION:="25.0.1"}"
-	: "${TERMUX_NDK_VERSION:="14"}"
+	: "${TERMUX_NDK_VERSION:="13"}"
 
 	if [ "x86_64" = "$TERMUX_ARCH" ] || [ "aarch64" = "$TERMUX_ARCH" ]; then
 		TERMUX_ARCH_BITS=64
@@ -384,6 +384,7 @@ termux_step_start_build() {
 	sleep 1
 	TERMUX_BUILD_TS_FILE=$TERMUX_PKG_TMPDIR/timestamp_$TERMUX_PKG_NAME
 	touch "$TERMUX_BUILD_TS_FILE"
+    sleep 1
 }
 
 # Run just after sourcing $TERMUX_PKG_BUILDER_SCRIPT. May be overridden by packages.
