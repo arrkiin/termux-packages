@@ -1,0 +1,136 @@
+commit f62e57901873802c30c9570000f1bc2493b8e97d
+Author: arrkiin <arrkiin@gmail.com>
+Date:   Fri Apr 21 19:05:53 2017 +0200
+
+    Patches for Android cross compilation
+
+diff --git a/numpy/core/src/multiarray/numpyos.c b/numpy/core/src/multiarray/numpyos.c
+index 0cfb9e6..14c67ae 100644
+--- a/numpy/core/src/multiarray/numpyos.c
++++ b/numpy/core/src/multiarray/numpyos.c
+@@ -172,8 +172,7 @@ ensure_decimal_point(char* buffer, size_t buf_size)
+ static void
+ change_decimal_from_locale_to_dot(char* buffer)
+ {
+-    struct lconv *locale_data = localeconv();
+-    const char *decimal_point = locale_data->decimal_point;
++    const char *decimal_point = ".";
+ 
+     if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+         size_t decimal_point_len = strlen(decimal_point);
+@@ -455,8 +454,7 @@ NumPyOS_ascii_strtod_plain(const char *s, char** endptr)
+ NPY_NO_EXPORT double
+ NumPyOS_ascii_strtod(const char *s, char** endptr)
+ {
+-    struct lconv *locale_data = localeconv();
+-    const char *decimal_point = locale_data->decimal_point;
++    const char *decimal_point = ".";
+     size_t decimal_point_len = strlen(decimal_point);
+ 
+     char buffer[FLOAT_FORMATBUFLEN+1];
+diff --git a/numpy/core/src/private/npy_config.h b/numpy/core/src/private/npy_config.h
+index b8e18e9..971d9fa 100644
+--- a/numpy/core/src/private/npy_config.h
++++ b/numpy/core/src/private/npy_config.h
+@@ -45,6 +45,12 @@
+ 
+ #endif
+ 
++/* Android only */
++#ifdef ANDROID
++#undef HAVE_LDEXPL
++#undef HAVE_FREXPL
++#endif
++
+ #if defined(_MSC_VER) && (_MSC_VER == 1900)
+ 
+ #undef HAVE_CASIN
+diff --git a/numpy/distutils/unixccompiler.py b/numpy/distutils/unixccompiler.py
+index a92ccd3..24e2ebc 100644
+--- a/numpy/distutils/unixccompiler.py
++++ b/numpy/distutils/unixccompiler.py
+@@ -94,6 +94,8 @@ def UnixCCompiler_create_static_lib(self, objects, output_libname,
+             pass
+         self.mkpath(os.path.dirname(output_filename))
+         tmp_objects = objects + self.objects
++        from os import environ
++        self.archiver[0] = environ.get('AR')
+         while tmp_objects:
+             objects = tmp_objects[:50]
+             tmp_objects = tmp_objects[50:]
+diff --git a/numpy/fft/setup.py b/numpy/fft/setup.py
+index cd99a82..6ea55a8 100644
+--- a/numpy/fft/setup.py
++++ b/numpy/fft/setup.py
+@@ -9,7 +9,8 @@ def configuration(parent_package='',top_path=None):
+ 
+     # Configure fftpack_lite
+     config.add_extension('fftpack_lite',
+-                         sources=['fftpack_litemodule.c', 'fftpack.c']
++                         sources=['fftpack_litemodule.c', 'fftpack.c'],
++                         libraries = ['m']
+                          )
+ 
+     return config
+diff --git a/numpy/linalg/setup.py b/numpy/linalg/setup.py
+index adc8f17..989b45d 100644
+--- a/numpy/linalg/setup.py
++++ b/numpy/linalg/setup.py
+@@ -40,6 +40,7 @@ def configuration(parent_package='', top_path=None):
+         sources=['lapack_litemodule.c', get_lapack_lite_sources],
+         depends=['lapack_lite/f2c.h'],
+         extra_info=lapack_info,
++        libraries= ['m',]
+     )
+ 
+     # umath_linalg module
+@@ -48,7 +49,7 @@ def configuration(parent_package='', top_path=None):
+         sources=['umath_linalg.c.src', get_lapack_lite_sources],
+         depends=['lapack_lite/f2c.h'],
+         extra_info=lapack_info,
+-        libraries=['npymath'],
++        libraries=['npymath','m'],
+     )
+     return config
+ 
+diff --git a/numpy/random/setup.py b/numpy/random/setup.py
+index 3f3b773..c1db9f7 100644
+--- a/numpy/random/setup.py
++++ b/numpy/random/setup.py
+@@ -40,7 +40,7 @@ def configuration(parent_package='',top_path=None):
+     if needs_mingw_ftime_workaround():
+         defs.append(("NPY_NEEDS_MINGW_TIME_WORKAROUND", None))
+ 
+-    libs = []
++    libs = ['m']
+     # Configure mtrand
+     config.add_extension('mtrand',
+                          sources=[join('mtrand', x) for x in
+diff --git a/numpy/testing/__init__.py b/numpy/testing/__init__.py
+index 625fdec..9faf66c 100644
+--- a/numpy/testing/__init__.py
++++ b/numpy/testing/__init__.py
+@@ -1,15 +1,7 @@
+-"""Common test support for all numpy test scripts.
+-
+-This single module should provide all the common functionality for numpy tests
+-in a single location, so that test scripts can just import it and work right
+-away.
+-
+-"""
+-from __future__ import division, absolute_import, print_function
+-
+-from unittest import TestCase
+-
+-from . import decorators as dec
+-from .nosetester import run_module_suite, NoseTester as Tester
+-from .utils import *
+-test = nosetester._numpy_tester().test
++# fake tester, android don't have unittest
++class Tester(object):
++    def test(self, *args, **kwargs):
++        pass
++    def bench(self, *args, **kwargs):
++        pass
++test = Tester().test
+\ No newline at end of file
