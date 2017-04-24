@@ -10,7 +10,21 @@ TERMUX_PKG_CLANG=no
 
 termux_step_make () {
 
-    CC="${CC}" LDSHARED="${CC} -shared" F90=${FC} F77=${FC} LDFLAGS="${LDFLAGS} -L${TERMUX_PREFIX}/sysroot/usr/lib" python3.6 setup.py build_ext \
+    cat > site.cfg << HERE
+[ALL]
+library_dirs = ${TERMUX_PREFIX}/lib:${TERMUX_STANDALONE_TOOLCHAIN}/sysroot/usr/lib
+include_dirs = ${TERMUX_PREFIX}/include:${TERMUX_PREFIX}/include/python3.6m
+runtime_library_dirs = ${TERMUX_PREFIX}/lib
+extra_link_args = -lpython3.6m
+
+[openblas]
+libraries = openblas
+library_dirs = ${TERMUX_PREFIX}/lib
+include_dirs = ${TERMUX_PREFIX}/include
+runtime_library_dirs = ${TERMUX_PREFIX}/lib
+HERE
+
+    CC="${CC}" LDSHARED="${CC} -shared" F90=${FC} F77=${FC} LDFLAGS="${LDFLAGS}" python3.6 setup.py build_ext \
 	--include-dirs "${TERMUX_PREFIX}/include:${TERMUX_PREFIX}/include/python3.6m" \
 	--library-dirs "${TERMUX_PREFIX}/lib:${TERMUX_STANDALONE_TOOLCHAIN}/sysroot/usr/lib" \
 	--rpath "${TERMUX_PREFIX}/lib" \
