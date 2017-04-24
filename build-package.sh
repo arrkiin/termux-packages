@@ -458,6 +458,7 @@ termux_step_setup_toolchain() {
 		export AS=${TERMUX_HOST_PLATFORM}-gcc
 		export CC=$TERMUX_HOST_PLATFORM-gcc
 		export CXX=$TERMUX_HOST_PLATFORM-g++
+		export FC=${TERMUX_HOST_PLATFORM}-gfortran
 		LDFLAGS+=" -specs=$TERMUX_SCRIPTDIR/termux.spec"
 		CFLAGS+=" -specs=$TERMUX_SCRIPTDIR/termux.spec"
 	else

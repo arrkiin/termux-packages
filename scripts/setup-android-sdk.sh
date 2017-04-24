@@ -36,9 +36,11 @@ UNAME=`uname | tr [A-Z] [a-z]`
 TOOLCHAIN=aarch64-linux-android
 TOOLCHAIN_VERSION=4.9
 TOOLCHAIN_FILE=gcc-arm64-${UNAME}-x86_64.tar.bz2
-TOOLCHAIN_TARGET=$NDK/toolchains/${TOOLCHAIN}-${TOOLCHAIN_VERSION}/prebuilt/${UNAME}-x86_64
+TOOLCHAIN_TARGET=$NDK/toolchains_gcc/${TOOLCHAIN}-${TOOLCHAIN_VERSION}/prebuilt/${UNAME}-x86_64
 
 if [ ! -e ${TOOLCHAIN_TARGET}/bin/${TOOLCHAIN}-gfortran ]; then
+    mkdir -p $NDK/toolchains_gcc
+    cp -R $NDK/toolchains/${TOOLCHAIN}-${TOOLCHAIN_VERSION} $NDK/toolchains_gcc/
     mkdir -p $NDK/../tmp
     cd $NDK/../tmp
     curl --fail --retry 3 -L -o toolchain.tar.bz2 \

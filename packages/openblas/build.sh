@@ -6,9 +6,7 @@ TERMUX_PKG_SRCURL=https://sourceforge.net/projects/openblas/files/v${TERMUX_PKG_
 TERMUX_PKG_FOLDERNAME="xianyi-OpenBLAS-9a7e0ec"
 TERMUX_PKG_KEEP_STATIC_LIBRARIES=yes
 TERMUX_PKG_BUILD_IN_SRC=yes
-_TOOLCHAIN_DIR=/home/arrkiin/lib/android-ndk/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin
-_FORTRAN_COMPILER=${_TOOLCHAIN_DIR}/${TERMUX_HOST_PLATFORM}-gfortran
-_GCC_COMPILER=${_TOOLCHAIN_DIR}/${TERMUX_HOST_PLATFORM}-gcc
+TERMUX_PKG_CLANG=no
 
 termux_step_configure () {
     return
@@ -16,7 +14,8 @@ termux_step_configure () {
 
 termux_step_make () {
 
-    export CFLAGS="--sysroot=${NDK}/platforms/android-24/arch-arm64"
-    make TARGET=ARMV8 BINARY=64 HOSTCC=gcc CC=${_GCC_COMPILER} CFLAGS=${CFLAGS} FC=${_FORTRAN_COMPILER} libs
+    #export CFLAGS="--sysroot=${NDK}/platforms/android-24/arch-arm64"
+    echo "make TARGET=ARMV8 BINARY=${TERMUX_ARCH_BITS} HOSTCC=${CC_FOR_BUILD} CC=${CC} CFLAGS=${CFLAGS} FC=${FC} libs"
+    make TARGET=ARMV8 BINARY=${TERMUX_ARCH_BITS} HOSTCC=${CC_FOR_BUILD} CC=${CC} CFLAGS="${CFLAGS}" FC=${FC} libs
 
 }
