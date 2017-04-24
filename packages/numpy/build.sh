@@ -25,14 +25,15 @@ termux_step_make_install () {
 
 }
 
-termux_post_massage () {
+termux_step_post_massage () {
 
 	pattern=-x86_64-linux-gnu
-	files=$(find -type f -name *${pattern}.so)
-	for l in ${files}
+	files=$(find . -type f -name *${pattern}.so)
+	for f_in in ${files}
 	do
-        	ln=$(echo "${l}"  | sed "s@${pattern}@@")
-	        mv ${l} ${ln}
+        	f_out=$(echo "${f_in}"  | sed "s@${pattern}@@")
+            echo "${f_in} -> ${f_out}"
+	        mv ${f_in} ${f_out}
 	done
 
 }
