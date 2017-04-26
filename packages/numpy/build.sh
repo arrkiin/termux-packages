@@ -12,7 +12,7 @@ termux_step_make () {
 
     cat > site.cfg << HERE
 [ALL]
-library_dirs = ${TERMUX_PREFIX}/lib:${TERMUX_STANDALONE_TOOLCHAIN}/sysroot/usr/lib
+library_dirs = ${TERMUX_PREFIX}/lib
 include_dirs = ${TERMUX_PREFIX}/include:${TERMUX_PREFIX}/include/python3.6m
 runtime_library_dirs = ${TERMUX_PREFIX}/lib
 extra_link_args = -lpython3.6m
@@ -34,7 +34,7 @@ HERE
 
 termux_step_make_install () {
 
-    CC="${CC}" LDSHARED="${CC} -shared" F90=${FC} F77=${FC} LDFLAGS="${LDFLAGS} -L${TERMUX_PREFIX}/sysroot/usr/lib" \
+    CC="${CC}" LDSHARED="${CC} -shared" F90=${FC} F77=${FC} LDFLAGS="${LDFLAGS}" \
     pip install . --target ${TERMUX_PREFIX}/lib/python3.6/site-packages --no-deps --ignore-installed --upgrade
 
 }
