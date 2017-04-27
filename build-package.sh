@@ -223,8 +223,6 @@ termux_step_setup_variables() {
 	# that everyone gets an updated toolchain:
 	TERMUX_STANDALONE_TOOLCHAIN+="-v17"
 
-	export TERMUX_TAR="tar"
-	export TERMUX_TOUCH="touch"
 	export prefix=${TERMUX_PREFIX}
 	export PREFIX=${TERMUX_PREFIX}
 	export PKG_CONFIG_LIBDIR=$TERMUX_PREFIX/lib/pkgconfig
@@ -409,7 +407,7 @@ termux_step_extract_package() {
 	if [ "${file##*.}" = zip ]; then
 		unzip -q "$file"
 	else
-		$TERMUX_TAR xf "$file"
+		tar xf "$file"
 	fi
 	mv $folder "$TERMUX_PKG_SRCDIR"
 }
@@ -825,12 +823,12 @@ termux_step_extract_into_massagedir() {
 
 	# Build diff tar with what has changed during the build:
 	cd $TERMUX_PREFIX
-	$TERMUX_TAR -N "$TERMUX_BUILD_TS_FILE" -czf "$TARBALL_ORIG" .
+	tar -N "$TERMUX_BUILD_TS_FILE" -czf "$TARBALL_ORIG" .
 
 	# Extract tar in order to massage it
 	mkdir -p "$TERMUX_PKG_MASSAGEDIR/$TERMUX_PREFIX"
 	cd "$TERMUX_PKG_MASSAGEDIR/$TERMUX_PREFIX"
-	$TERMUX_TAR xf "$TARBALL_ORIG"
+	tar xf "$TARBALL_ORIG"
 	rm "$TARBALL_ORIG"
 }
 
@@ -867,10 +865,11 @@ termux_step_massage() {
 	# Move over sbin to bin:
 	for file in sbin/*; do if test -f "$file"; then mv "$file" bin/; fi; done
 
-        # Remove world permissions and add write permissions.
+	# Remove world permissions and add write permissions.
 	# The -f flag is used to suppress warnings about dangling symlinks (such
 	# as ones to /system/... which may not exist on the build machine):
-        find . -exec chmod -f u+w,o-rwx \{\} \;
+        find . -exec chmod -f u+w,g-rwx,o-rwx \{\} \;
+
 	if [ "$TERMUX_DEBUG" = "" ]; then
 		# Strip binaries. file(1) may fail for certain unusual files, so disable pipefail.
 		set +e +o pipefail
@@ -939,7 +938,7 @@ termux_step_massage() {
 		cd "$SUB_PKG_DIR/massage"
 		local SUB_PKG_INSTALLSIZE
 		SUB_PKG_INSTALLSIZE=$(du -sk . | cut -f 1)
-		$TERMUX_TAR -cJf "$SUB_PKG_PACKAGE_DIR/data.tar.xz" .
+		tar -cJf "$SUB_PKG_PACKAGE_DIR/data.tar.xz" .
 
 		mkdir -p DEBIAN
 		cd DEBIAN
@@ -954,7 +953,7 @@ termux_step_massage() {
 		HERE
 		test ! -z "$TERMUX_SUBPKG_DEPENDS" && echo "Depends: $TERMUX_SUBPKG_DEPENDS" >> control
 		test ! -z "$TERMUX_SUBPKG_CONFLICTS" && echo "Conflicts: $TERMUX_SUBPKG_CONFLICTS" >> control
-		$TERMUX_TAR -cJf "$SUB_PKG_PACKAGE_DIR/control.tar.xz" .
+		tar -cJf "$SUB_PKG_PACKAGE_DIR/control.tar.xz" .
 
 		for f in $TERMUX_SUBPKG_CONFFILES; do echo "$TERMUX_PREFIX/$f" >> conffiles; done
 
@@ -993,7 +992,7 @@ termux_step_create_datatar() {
 	if [ -z "${TERMUX_PKG_METAPACKAGE+x}" ] && [ "$(find . -type f)" = "" ]; then
 		termux_error_exit "No files in package"
 	fi
-	$TERMUX_TAR -cJf "$TERMUX_PKG_PACKAGEDIR/data.tar.xz" .
+	tar -cJf "$TERMUX_PKG_PACKAGEDIR/data.tar.xz" .
 }
 
 termux_step_create_debscripts() {
@@ -1033,7 +1032,7 @@ termux_step_create_debfile() {
 	termux_step_create_debscripts
 
 	# Create control.tar.xz
-	$TERMUX_TAR -cJf "$TERMUX_PKG_PACKAGEDIR/control.tar.xz" .
+	tar -cJf "$TERMUX_PKG_PACKAGEDIR/control.tar.xz" .
 
 	test ! -f "$TERMUX_COMMON_CACHEDIR/debian-binary" && echo "2.0" > "$TERMUX_COMMON_CACHEDIR/debian-binary"
 	TERMUX_PKG_DEBFILE=$TERMUX_DEBDIR/${TERMUX_PKG_NAME}_${TERMUX_PKG_FULLVERSION}_${TERMUX_ARCH}.deb
